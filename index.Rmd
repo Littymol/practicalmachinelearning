@@ -1,0 +1,123 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Littymol Chacko"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview:
+
+The human activity recognition research has traditionally focused on discriminating between different activities, i.e. to predict "which" activity was performed at a specific point in time.The approach we propose for the Weight Lifting Exercises data is to investigate "how (well)" an activity was performed by the wearer. The "how (well)" investigation has only received little attention so far, even though it potentially provides useful information for a large variety of applications,such as sports training.
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg).More information is available from the website here: http://groupware.les.inf.puc-rio.br/har. 
+
+### Data
+
+The main goal of this  project is to predict the manner in which they did the exercise. Also to use the  prediction model to predict 20 different test cases.
+
+The training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+## Analysis
+
+1. Data Loading and Cleaning:
+
+```{r}
+
+## Installing the libraries and loading the data
+
+library(caret)
+library(rpart)
+
+training<-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings=c("NA","#DIV/0!",""))
+testing<- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings=c("NA","#DIV/0!",""))
+
+ ## Removing NA from data set 
+training<-training[,colSums(is.na(training)) == 0]
+testing <-testing[,colSums(is.na(testing)) == 0]
+
+##Remove columns that are not predictors, which are the first six columns
+training <-training[,-c(1:6)]
+testing <-testing[,-c(1:6)]
+```
+
+2. Set up data
+
+```{r}
+
+## Split the data into 2 parts. We use 70% of the data to train our model and the remaining 30% to validate it
+set.seed(2345)
+inTrain <- createDataPartition(training$classe, p=0.75, list=FALSE)  
+training_data<- training[inTrain, ]
+validation_data<-training[-inTrain, ]
+validation_data$classe<-as.factor(validation_data$classe)
+
+```
+
+3. Build the model using different algorithms
+
+```{r}
+set.seed(2345)
+training$classe<-as.factor(training$classe)
+
+## 1. gbm - Generalized Boosted Regression Modeling 
+model_gbm<-train(classe ~ ., data = training_data,  method = "gbm", trControl = trainControl(method="repeatedcv", number = 5,repeats = 1), 
+                 verbose = FALSE)
+
+## 2. lda - Linear Discriminant Analysis
+model_lda<-train(classe ~ ., data = training_data,  method = "lda")
+
+## 3. rpart - Recursive Partitioning and Regression Trees
+model_rpart<-train(classe ~ ., data = training_data,  method = "rpart")
+
+## 3. rf - Random Forest
+model_rf<-train(classe ~ ., data = training_data,  method = "rf", trControl = trainControl(method = "cv", number = 3))
+```
+
+4. Prediction on Validation data set
+
+```{r}
+##Prediction using gbm model
+prediction_gbm<- predict(model_gbm, validation_data)
+confusionMatrix_gbm<- confusionMatrix(prediction_gbm, validation_data$classe)
+print(confusionMatrix_gbm)
+plot(model_gbm)
+
+## Prediction using lda model
+prediction_lda<- predict(model_lda, validation_data)
+confusionMatrix_lda<- confusionMatrix(prediction_lda, validation_data$classe)
+print(confusionMatrix_lda)
+
+## Prediction using rpart
+prediction_rpart<- predict(model_rpart, validation_data)
+confusionMatrix_rpart<- confusionMatrix(prediction_rpart, validation_data$classe)
+print(confusionMatrix_rpart)
+plot(model_rpart)
+
+## Prediction using rf model
+
+prediction_rf<- predict(model_rf, validation_data)
+confusionMatrix_rf<- confusionMatrix(prediction_rf, validation_data$classe)
+print(confusionMatrix_rf)
+plot(model_rf)
+```
+
+## Test Case Prediction 
+It is observed that both rf and gbm yield the same result. Since random forest has marginally better performance (Accuracy : 0.998) than  gbm model, let's test our model in the 20 test case data set.
+
+```{r}
+prediction_rf_testing<-predict(model_lda, testing)
+print(prediction_rf_testing)
+```
