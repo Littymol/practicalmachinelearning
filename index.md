@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning Course Project"
 author: "Littymol Chacko"
-date: "9/29/2020"
+date: "9/30/2020"
 output: 
   html_document:
     keep_md: true
