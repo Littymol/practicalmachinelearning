@@ -289,14 +289,15 @@ plot(model_rf)
 
 ## Test Case Prediction 
 It is observed that both rf and gbm yield the same result. Since random forest has marginally better performance (Accuracy : 0.998) than  gbm model, let's test our model in the 20 test case data set.
+As expected, Random Forest Model give a high accuracy (99.89%). So, the expected out-of-sample error is 100-99.89 = 0.11%.
 
 
 ```r
-prediction_rf_testing<-predict(model_lda, testing)
+prediction_rf_testing<-predict(model_rf, testing)
 print(prediction_rf_testing)
 ```
 
 ```
-##  [1] B A B A C E D D A A D A B A B A A B B B
+##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E
 ```
