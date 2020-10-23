@@ -59,7 +59,7 @@ testing <-testing[,-c(1:6)]
 
 ```{r}
 
-## Split the data into 2 parts. We use 70% of the data to train our model and the remaining 30% to validate it
+## Split the data into 2 parts. We use 75% of the data to train our model and the remaining 25% to validate it
 set.seed(2345)
 inTrain <- createDataPartition(training$classe, p=0.75, list=FALSE)  
 training_data<- training[inTrain, ]
